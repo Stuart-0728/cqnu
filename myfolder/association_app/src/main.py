@@ -50,7 +50,7 @@ if not app.debug:
 
 # 初始化数据库
 from src.models import init_db
-#init_db(app)
+init_db(app)  # 取消注释，确保数据库初始化
 
 # 注册蓝图
 from src.routes.auth import auth_bp
