@@ -1,5 +1,6 @@
 from datetime import datetime
-from src.models.user import db, User
+from src.models import db
+from src.models.user import User
 from src.models.activity import Activity
 
 class Registration(db.Model):
