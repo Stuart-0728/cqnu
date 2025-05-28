@@ -1,46 +1,46 @@
 from flask import Blueprint, request, jsonify, session
-from src.models.activities import activities, Registration, db
+from src.models.activitieimport activity, Registration, db
 from src.routes.auth import login_required, admin_required
 from datetime import datetime
 
-activities_bp = Blueprint('activities', __name__)
+activity_bp = Blueprint('activity', __name__)
 
-@activities_bp.route('/', methods=['GET'])
-def get_activities():
+@activity_bp.route('/', methods=['GET'])
+def get_activitie():
     """获取所有活动列表"""
     # 获取查询参数
     status = request.args.get('status', 'all')
     
     # 构建查询
-    query = activities.query
+    query = activity.query
     
     # 根据状态筛选
     if status != 'all':
         query = query.filter_by(status=status)
     
     # 按创建时间倒序排列
-    activities = query.order_by(activities.created_at.desc()).all()
+    activity = query.order_by(activity.created_at.desc()).all()
     
     return jsonify({
         'success': True,
-        'activities': [activities.to_dict() for activities in activities]
+        'activity': [activity.to_dict() for activitiein activitie]
     }), 200
 
-@activities_bp.route('/<int:activities_id>', methods=['GET'])
-def get_activities(activities_id):
+@activity_bp.route('/<int:activity_id>', methods=['GET'])
+def get_activitie(activity_id):
     """获取指定活动详情"""
-    activities = activities.query.get(activities_id)
-    if not activities:
+    activity = activity.query.get(activity_id)
+    if not activity:
         return jsonify({'success': False, 'message': '活动不存在'}), 404
     
     return jsonify({
         'success': True,
-        'activities': activities.to_dict()
+        'activity': activity.to_dict()
     }), 200
 
-@activities_bp.route('/', methods=['POST'])
+@activity_bp.route('/', methods=['POST'])
 @admin_required
-def create_activities():
+def create_activity():
     """创建新活动（仅管理员）"""
     data = request.get_json()
     
@@ -68,7 +68,7 @@ def create_activities():
     
     # 创建新活动
     try:
-        new_activities = activities(
+        new_activity = activity(
             title=data['title'],
             description=data['description'],
             location=data['location'],
@@ -80,25 +80,25 @@ def create_activities():
             image_url=data.get('image_url')
         )
         
-        db.session.add(new_activities)
+        db.session.add(new_activity)
         db.session.commit()
         
         return jsonify({
             'success': True,
             'message': '活动创建成功',
-            'activities': new_activities.to_dict()
+            'activity': new_activity.to_dict()
         }), 201
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'创建失败: {str(e)}'}), 500
 
-@activities_bp.route('/<int:activities_id>', methods=['PUT'])
+@activity_bp.route('/<int:activity_id>', methods=['PUT'])
 @admin_required
-def update_activities(activities_id):
+def update_activity(activity_id):
     """更新活动信息（仅管理员）"""
-    activities = activities.query.get(activities_id)
-    if not activities:
+    activity = activity.query.get(activity_id)
+    if not activity:
         return jsonify({'success': False, 'message': '活动不存在'}), 404
     
     data = request.get_json()
@@ -107,7 +107,7 @@ def update_activities(activities_id):
     updatable_fields = ['title', 'description', 'location', 'max_participants', 'status', 'image_url']
     for field in updatable_fields:
         if field in data:
-            setattr(activities, field, data[field])
+            setattr(activity, field, data[field])
     
     # 更新日期时间字段（需要解析）
     date_fields = {
@@ -120,42 +120,42 @@ def update_activities(activities_id):
         if json_field in data and data[json_field]:
             try:
                 parsed_date = datetime.fromisoformat(data[json_field].replace('Z', '+00:00'))
-                setattr(activities, model_field, parsed_date)
+                setattr(activity, model_field, parsed_date)
             except ValueError:
                 return jsonify({'success': False, 'message': f'{json_field} 日期格式无效'}), 400
     
     # 验证日期逻辑
-    if activities.start_time > activities.end_time:
+    if activity.start_time > activity.end_time:
         return jsonify({'success': False, 'message': '活动开始时间不能晚于结束时间'}), 400
     
-    if activities.registration_deadline > activities.start_time:
+    if activity.registration_deadline > activity.start_time:
         return jsonify({'success': False, 'message': '报名截止时间应早于活动开始时间'}), 400
     
     # 更新活动
     try:
-        activities.updated_at = datetime.utcnow()
+        activity.updated_at = datetime.utcnow()
         db.session.commit()
         
         return jsonify({
             'success': True,
             'message': '活动已更新',
-            'activities': activities.to_dict()
+            'activity': activity.to_dict()
         }), 200
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'}), 500
 
-@activities_bp.route('/<int:activities_id>', methods=['DELETE'])
+@activity_bp.route('/<int:activity_id>', methods=['DELETE'])
 @admin_required
-def delete_activities(activities_id):
+def delete_activity(activity_id):
     """删除活动（仅管理员）"""
-    activities = activities.query.get(activities_id)
-    if not activities:
+    activity = activity.query.get(activity_id)
+    if not activity:
         return jsonify({'success': False, 'message': '活动不存在'}), 404
     
     try:
-        db.session.delete(activities)
+        db.session.delete(activity)
         db.session.commit()
         
         return jsonify({
@@ -167,19 +167,19 @@ def delete_activities(activities_id):
         db.session.rollback()
         return jsonify({'success': False, 'message': f'删除失败: {str(e)}'}), 500
 
-@activities_bp.route('/<int:activities_id>/status', methods=['PUT'])
+@activity_bp.route('/<int:activity_id>/status', methods=['PUT'])
 @admin_required
-def update_activities_status(activities_id):
+def update_activity_status(activity_id):
     """更新活动状态（仅管理员）"""
-    activities = activities.query.get(activities_id)
-    if not activities:
+    activity = activity.query.get(activity_id)
+    if not activity:
         return jsonify({'success': False, 'message': '活动不存在'}), 404
     
     data = request.get_json()
     if 'status' not in data or data['status'] not in ['active', 'cancelled', 'completed']:
         return jsonify({'success': False, 'message': '无效的状态值'}), 400
     
-    activities.status = data['status']
+    activity.status = data['status']
     
     try:
         db.session.commit()
@@ -187,23 +187,23 @@ def update_activities_status(activities_id):
         return jsonify({
             'success': True,
             'message': '活动状态已更新',
-            'activities': activities.to_dict()
+            'activity': activity.to_dict()
         }), 200
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': f'更新失败: {str(e)}'}), 500
 
-@activities_bp.route('/<int:activities_id>/participants', methods=['GET'])
+@activity_bp.route('/<int:activity_id>/participants', methods=['GET'])
 @admin_required
-def get_activities_participants(activities_id):
+def get_activity_participants(activity_id):
     """获取活动参与者列表（仅管理员）"""
-    activities = activities.query.get(activities_id)
-    if not activities:
+    activity = activity.query.get(activity_id)
+    if not activity:
         return jsonify({'success': False, 'message': '活动不存在'}), 404
     
     # 获取所有报名记录及用户信息
-    registrations = Registration.query.filter_by(activities_id=activities_id).all()
+    registrations = Registration.query.filter_by(activity_id=activity_id).all()
     
     participants = []
     for reg in registrations:
@@ -225,7 +225,7 @@ def get_activities_participants(activities_id):
     
     return jsonify({
         'success': True,
-        'activities': activities.to_dict(),
+        'activity': activity.to_dict(),
         'participants': participants,
         'total_count': len(participants)
     }), 200
