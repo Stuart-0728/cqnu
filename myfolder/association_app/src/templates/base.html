@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}校园协会{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">首页</a>
+      {% if session.get('user_id') %}
+        <a href="/api/logout">退出</a>
+      {% else %}
+        <a href="/api/login">登录</a>
+        <a href="/api/register">注册</a>
+      {% endif %}
+    </nav>
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+  <footer>&copy; 2025 CQNU Association</footer>
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

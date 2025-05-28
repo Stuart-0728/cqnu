@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}用户中心{% endblock %}
+{% block content %}
+<h2>欢迎, {{ user.username }}</h2>
+<p>邮箱: {{ user.email }}</p>
+{% endblock %}

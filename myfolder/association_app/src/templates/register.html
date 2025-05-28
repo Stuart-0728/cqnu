@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}注册{% endblock %}
+{% block content %}
+<h2>注册</h2>
+<form method="post">
+  <label>用户名:<input name="username"></label><br>
+  <label>密码:<input type="password" name="password"></label><br>
+  <label>邮箱:<input name="email"></label><br>
+  <button type="submit">注册</button>
+</form>
+{% endblock %}
