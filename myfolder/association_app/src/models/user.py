@@ -51,7 +51,7 @@ class User(db.Model):
     def update_last_login(self):
         """更新最后登录时间"""
         self.last_login = datetime.utcnow()
-        db.session.commit()
+        # 移除直接提交会话，由调用者控制事务
     
     def to_dict(self):
         """将用户信息转换为字典格式"""

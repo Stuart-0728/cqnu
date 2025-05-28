@@ -14,12 +14,15 @@ def init_db(app):
         
 def create_default_admin():
     """创建默认管理员账户"""
+    import os
+    default_admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
     admin = User(
         username='admin',
         email='admin@cqnu.edu.cn',
-        password='admin123',  # 初始密码，应提示管理员首次登录后修改
+        password=default_admin_password,  # 从环境变量获取密码，默认值仅用于开发环境
         full_name='系统管理员',
-        role='admin'
+        role='admin',
+        force_password_change=True  # 标记为首次登录需要修改密码
     )
     db.session.add(admin)
     db.session.commit()
