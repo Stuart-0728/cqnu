@@ -2,23 +2,51 @@ from flask import Flask, session, g, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import os
 import sys
+import logging
+from logging.handlers import RotatingFileHandler
 
 # 添加项目路径
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# 环境配置
+ENV = os.getenv('FLASK_ENV', 'development')
+IS_PRODUCTION = ENV == 'production'
+
 # 创建Flask应用
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'cqnu_association_secret_key')
+
+# 安全配置 - 生产环境必须设置环境变量
+if IS_PRODUCTION and not os.getenv('SECRET_KEY'):
+    raise RuntimeError('生产环境必须设置SECRET_KEY环境变量')
+
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_secret_key_not_for_production')
 
 # 配置数据库为SQLite（免费部署用）
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,  # 连接健康检查
+    'pool_recycle': 300,    # 连接回收时间
+}
 
-# 生产环境配置
-app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 会话有效期为1天
-app.config['SESSION_COOKIE_SECURE'] = False  # 开发环境中允许HTTP发送cookie
+# 会话配置
+app.config['PERMANENT_SESSION_LIFETIME'] = int(os.getenv('SESSION_LIFETIME', 86400))  # 会话有效期，默认1天
+app.config['SESSION_COOKIE_SECURE'] = IS_PRODUCTION  # 生产环境强制HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True  # 防止JavaScript访问cookie
-app.config['PREFERRED_URL_SCHEME'] = 'http'  # 开发环境使用HTTP
+app.config['PREFERRED_URL_SCHEME'] = 'https' if IS_PRODUCTION else 'http'
+
+# 配置日志
+if not app.debug:
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/application.log', maxBytes=10240, backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    ))
+    file_handler.setLevel(logging.INFO)
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info('应用启动')
 
 # 初始化数据库
 from src.models import init_db
