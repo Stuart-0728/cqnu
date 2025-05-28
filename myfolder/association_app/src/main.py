@@ -12,7 +12,7 @@ load_dotenv()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Flask 工厂函数
-from src.utils.config import Config
+from utils.config import Config
 from src.models import init_db, db
 from src.models.user import User
 
