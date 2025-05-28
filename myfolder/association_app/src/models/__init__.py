@@ -21,8 +21,7 @@ def create_default_admin():
         email='admin@cqnu.edu.cn',
         password=default_admin_password,  # 从环境变量获取密码，默认值仅用于开发环境
         full_name='系统管理员',
-        role='admin',
-        force_password_change=True  # 标记为首次登录需要修改密码
+        role='admin'
     )
     db.session.add(admin)
     db.session.commit()
