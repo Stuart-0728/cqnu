@@ -16,11 +16,13 @@ class ActivityStatus:
 def parse_datetime(value):
     try:
         return datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except ValueError:
+    except (ValueError, AttributeError):
         return None
 
 
 def validate_activity_times(start, end, deadline):
+    if not all([start, end, deadline]):
+        return '日期格式无效'
     if start > end:
         return '活动开始时间不能晚于结束时间'
     if deadline > start:
@@ -45,7 +47,7 @@ def get_activities():
     if status != 'all':
         query = query.filter_by(status=status)
 
-    pagination = query.order_by(Activity.created_at.desc()).paginate(page, per_page, error_out=False)
+    pagination = query.order_by(Activity.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     activities = [activity.to_dict() for activity in pagination.items]
 
     return jsonify({
@@ -77,8 +79,6 @@ def create_activity():
     start_time = parse_datetime(data['start_time'])
     end_time = parse_datetime(data['end_time'])
     registration_deadline = parse_datetime(data['registration_deadline'])
-    if not all([start_time, end_time, registration_deadline]):
-        return jsonify({'success': False, 'message': '日期格式无效'}), 400
 
     msg = validate_activity_times(start_time, end_time, registration_deadline)
     if msg:
@@ -98,7 +98,6 @@ def create_activity():
         )
         db.session.add(new_activity)
         db.session.commit()
-
         return jsonify({'success': True, 'message': '活动创建成功', 'activity': new_activity.to_dict()}), 201
     except Exception as e:
         db.session.rollback()
