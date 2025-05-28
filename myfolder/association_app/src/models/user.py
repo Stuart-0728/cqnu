@@ -1,12 +1,10 @@
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-
-db = SQLAlchemy()
+from src.models import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model):
-    """用户模型，包含管理员和普通学生用户"""
-    __tablename__ = 'users'
+"""用户模型，包含管理员和普通学生用户"""
+tablename = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
 username = db.Column(db.String(80), unique=True, nullable=False)
