@@ -83,6 +83,74 @@ body {
     .activity-image {
         height: 150px;
     }
+    
+    #main-content {
+        padding: 1rem 0;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .jumbotron {
+        padding: 2rem 1rem !important;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .form-container {
+        padding: 0 1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .lead {
+        font-size: 1.1rem;
+    }
+}
+
+/* 移动端触控优化 */
+@media (max-width: 576px) {
+    .btn, .form-control, .nav-link, .dropdown-item {
+        padding: 0.6rem 0.75rem;
+        min-height: 44px;
+    }
+    
+    .navbar-toggler {
+        padding: 0.5rem;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .card-footer .btn {
+        min-width: 44px;
+    }
+    
+    .activity-card {
+        margin-bottom: 1.5rem;
+    }
+    
+    .toast-container {
+        width: 100%;
+        padding: 0.5rem;
+    }
+    
+    .toast {
+        width: 100%;
+    }
 }
 
 /* 仪表盘样式 */
