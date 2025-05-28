@@ -98,11 +98,23 @@ def login():
     # 更新最后登录时间
     user.update_last_login()
     
+    # 检查是否需要强制修改密码
+    force_change_password = getattr(user, 'force_password_change', False)
+    
     # 设置会话
     session['user_id'] = user.id
     session['username'] = user.username
     session['role'] = user.role
+    session['force_password_change'] = force_change_password
     session.permanent = True  # 使会话持久化
+    
+    # 提交数据库更改
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"登录时更新用户数据失败: {str(e)}")
+        return jsonify({'success': False, 'message': '登录过程中发生错误'}), 500
     
     return jsonify({
         'success': True,
