@@ -34,7 +34,7 @@
                         </div>
                         <div class="dropdown" v-else>
                             <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
-                                <span>{{ currentUser.username }}</span>
+                                <span>{% raw %}{{ currentUser.username }}{% endraw %}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/user/profile">个人资料</a></li>
@@ -62,11 +62,11 @@
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" ref="toast">
                 <div class="toast-header" :class="toastClass">
-                    <strong class="me-auto">{{ toastTitle }}</strong>
+                    <strong class="me-auto">{% raw %}{{ toastTitle }}{% endraw %}</strong>
                     <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
                 </div>
                 <div class="toast-body">
-                    {{ toastMessage }}
+                    {% raw %}{{ toastMessage }}{% endraw %}
                 </div>
             </div>
         </div>
