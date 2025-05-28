@@ -102,6 +102,7 @@ def login():
     session['user_id'] = user.id
     session['username'] = user.username
     session['role'] = user.role
+    session.permanent = True  # 使会话持久化
     
     return jsonify({
         'success': True,

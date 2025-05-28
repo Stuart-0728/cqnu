@@ -60,9 +60,6 @@ def create_activity():
     
     # 验证日期逻辑
     now = datetime.utcnow()
-    if registration_deadline < now:
-        return jsonify({'success': False, 'message': '报名截止时间不能早于当前时间'}), 400
-    
     if start_time > end_time:
         return jsonify({'success': False, 'message': '活动开始时间不能晚于结束时间'}), 400
     
