@@ -1,5 +1,4 @@
-# 文件路径：association_app/src/main.py
-
+# association_app/src/main.py
 import os
 import sys
 from dotenv import load_dotenv
@@ -7,45 +6,58 @@ from flask import Flask
 from logging.handlers import RotatingFileHandler
 import logging
 
-# —— 环境变量加载 ——  
-# 本地有 .env 时加载；线上 Render 上不存在 .env，就忽略
 load_dotenv()
-
-# —— 将项目根目录加入 PYTHONPATH，保证 src 包能被找到 ——  
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# —— Flask 应用初始化 ——  
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
-# —— 环境 & 安全检查 ——  
 ENV = os.getenv('FLASK_ENV', 'production')
 IS_PRODUCTION = ENV == 'production'
-
 if IS_PRODUCTION and not os.getenv('SECRET_KEY'):
-    raise RuntimeError('生产环境必须设置 SECRET_KEY 环境变量')
+    raise RuntimeError('生产环境必须设置 SECRET_KEY')
 
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = int(os.getenv('SESSION_LIFETIME', 86400))
+app.config.update({
+    'SECRET_KEY': os.getenv('SECRET_KEY'),
+    'SQLALCHEMY_DATABASE_URI': os.getenv('DATABASE_URL'),
+    'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+    'SESSION_PERMANENT': True,
+    'PERMANENT_SESSION_LIFETIME': int(os.getenv('SESSION_LIFETIME', 86400))
+})
 
-# —— 日志配置 ——  
 if not app.debug:
     if not os.path.exists('logs'):
         os.mkdir('logs')
-    file_handler = RotatingFileHandler('logs/application.log', maxBytes=10*1024*1024, backupCount=5)
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter(
+    fh = RotatingFileHandler('logs/app.log', maxBytes=10*1024*1024, backupCount=5)
+    fh.setFormatter(logging.Formatter(
         '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
     ))
-    app.logger.addHandler(file_handler)
+    fh.setLevel(logging.INFO)
+    app.logger.addHandler(fh)
     app.logger.setLevel(logging.INFO)
     app.logger.info('应用启动')
 
-# —— 数据库初始化 ——  
-from src.models import init_db
+from src.models import init_db, db
+from src.models.user import User
+
 init_db(app)
+
+@app.before_first_request
+def ensure_admin():
+    """应用首次请求时创建默认管理员"""
+    username = 'admin'
+    from os import getenv
+    pwd = getenv('ADMIN_PASSWORD', 'admin123')
+    if not User.query.filter_by(username=username).first():
+        admin = User(
+            username=username,
+            email=f'{username}@cqnu.edu.cn',
+            password=pwd,
+            full_name='系统管理员',
+            role='admin'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        app.logger.info(f"管理员账号 [{username}] 已创建")
 
 # —— 注册蓝图 ——  
 from src.routes.auth import auth_bp
@@ -68,6 +80,5 @@ def catch_all(path):
     return app.send_static_file('index.html')
 
 if __name__ == '__main__':
-    # 本地开发时使用
     port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=(ENV != 'production'))
+    app.run(host='0.0.0.0', port=port, debug=(ENV!='production'))
