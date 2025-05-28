@@ -49,15 +49,6 @@
 - 路由：Vue Router
 - HTTP请求：Axios
 
-## 部署信息
-
-系统已成功部署，可通过以下链接访问：
-https://5000-iejqvtx55613ojmh1zmc4-db60917a.manus.computer
-
-### 默认管理员账号
-- 用户名：admin
-- 密码：admin123
-- 注意：首次登录后请修改默认密码
 
 ## 使用指南
 
