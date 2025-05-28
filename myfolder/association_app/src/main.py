@@ -1,38 +1,31 @@
-from flask import Flask, session, render_template, request, jsonify, redirect, url_for
 import os
+from flask import Flask
+from dotenv import load_dotenv
+
+# 本地开发时才会加载 .env；线上 Render 环境不存在 .env，就什么也不做
+load_dotenv()
+
+app = Flask(__name__)
+
+# 读取环境变量
+ENV = os.getenv('FLASK_ENV', 'production')
+IS_PRODUCTION = ENV == 'production'
+
+if IS_PRODUCTION and not os.getenv('SECRET_KEY'):
+    raise RuntimeError('生产环境必须设置 SECRET_KEY 环境变量')
+
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = int(os.getenv('SESSION_LIFETIME', 86400))
+
+# 如果你在代码里手动读取 PORT
+port = int(os.getenv('PORT', 5000))
+
+# 初始化数据库等
 from src.models import init_db
-from src.routes.auth import auth_bp
-from src.routes.activities import activities_bp
-from src.routes.admin import admin_bp
-from src.routes.user import user_bp
-from src.utils.config import Config
-
-def create_app():
-    """创建Flask应用"""
-    app = Flask(__name__)
-    
-    # 配置应用
-    app.config.from_object(Config)
-    
-    # 初始化数据库
-    init_db(app)  # 确保这行没有被注释掉
-    
-    # 注册蓝图
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(activities_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(user_bp)
-    
-    # 主路由 - 处理前端路由
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def catch_all(path):
-        """处理所有前端路由，返回主页面"""
-        return render_template('index.html')
-    
-    return app
-
-app = create_app()
+init_db(app)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    # 本地开发：debug=True；线上请使用 Gunicorn 启动
+    app.run(host='0.0.0.0', port=port, debug=(ENV != 'production'))
