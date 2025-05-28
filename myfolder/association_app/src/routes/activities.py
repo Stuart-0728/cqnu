@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, session, abort
-from src.models.activity import Activity, Registration, db
+from src.models.activity import Activity, db
+from src.models.registration import Registration
 from src.routes.auth import login_required, admin_required
 from datetime import datetime
 
