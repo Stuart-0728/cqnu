@@ -48,7 +48,7 @@ def create_app():
 
     # ==== 注册各模块蓝图 ====
     from src.routes.auth import auth_bp
-    from src.routes.activities import activities_bp   # 正确的复数导入
+    from src.routes.activities import activity_bp   # 正确导入 activity_bp
     from src.routes.admin import admin_bp
     from src.routes.user import user_bp
     from src.routes.registration import registration_bp
@@ -56,7 +56,7 @@ def create_app():
     from src.routes.upload import upload_bp
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(activities_bp)           # 复数
+    app.register_blueprint(activity_bp, url_prefix='/activities')  # 指定前缀或在 Blueprint 内部已有
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(registration_bp)
