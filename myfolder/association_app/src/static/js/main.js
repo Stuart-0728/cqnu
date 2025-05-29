@@ -60,7 +60,11 @@ const Register = {
     methods: {
         async doRegister() {
             try {
-                await axios.post('/api/auth/register', { ...this.$data });
+                await axios.post('/api/auth/register', {
+                    username: this.username,
+                    email: this.email,
+                    password: this.password
+                });
                 alert('注册成功，请登录');
                 this.$router.push('/login');
             } catch(e) {
@@ -89,8 +93,9 @@ const Activities = {
     },
     async created() {
         try {
-            const resp = await axios.get('/api/activity');
-            this.activities = resp.data;
+            const resp = await axios.get('/api/activities');
+            // 后端返回 { success, activities: [...], ... }
+            this.activities = resp.data.activities;
         } catch(e) {
             console.error('获取活动列表失败', e);
         }
@@ -98,7 +103,8 @@ const Activities = {
     methods: {
         async signUp(id) {
             try {
-                await axios.post(`/api/registration/${id}`);
+                // 对应后端 /api/registration/activities/:id/register
+                await axios.post(`/api/registration/activities/${id}/register`);
                 alert('报名成功');
             } catch(e) {
                 alert('报名失败');
@@ -112,8 +118,10 @@ const MyRegistrations = {
     <div>
         <h2>我的报名</h2>
         <ul class="list-group">
-            <li v-for="r in regs" :key="r.id" class="list-group-item">
-                活动ID: {{ r.activity_id }} 状态: {{ r.status }} 时间: {{ r.timestamp }}
+            <li v-for="item in regs" :key="item.registration.id" class="list-group-item">
+                活动: {{ item.activity.title }} 
+                <br>状态: {{ item.registration.status }} 
+                <br>时间: {{ item.registration.registration_time || item.registration.timestamp }}
             </li>
         </ul>
     </div>`,
@@ -124,8 +132,10 @@ const MyRegistrations = {
     },
     async created() {
         try {
-            const resp = await axios.get('/api/registration/me');
-            this.regs = resp.data;
+            // 对应后端 /api/registration/my-registrations
+            const resp = await axios.get('/api/registration/my-registrations');
+            // 后端返回 { success, registrations: [ { registration, activity }, ... ] }
+            this.regs = resp.data.registrations;
         } catch(e) {
             console.error('获取报名记录失败', e);
         }
@@ -157,8 +167,11 @@ const router = VueRouter.createRouter({
     routes
 });
 
-// 全局初始化
-axios.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
+// 全局初始化：带上 token
+const token = localStorage.getItem('token');
+if (token) {
+    axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+}
 
 // 创建Vue应用实例
 const app = Vue.createApp({
@@ -172,7 +185,6 @@ const app = Vue.createApp({
     },
     async created() {
         try {
-            // 尝试获取当前用户信息
             const resp = await axios.get('/api/auth/me');
             this.currentUser = resp.data;
         } catch(e) {
@@ -190,8 +202,6 @@ const app = Vue.createApp({
             this.toastTitle = title;
             this.toastMessage = message;
             this.toastClass = `bg-${type} text-white`;
-            
-            // 使用Bootstrap的Toast API显示提示
             const toastEl = this.$refs.toast;
             if (toastEl) {
                 const toast = new bootstrap.Toast(toastEl);
