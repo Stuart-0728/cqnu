@@ -1,6 +1,5 @@
-from flask import Flask, session, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, jsonify
 import os
-import sys
 from dotenv import load_dotenv
 import logging
 from logging.handlers import RotatingFileHandler
@@ -9,14 +8,13 @@ from logging.handlers import RotatingFileHandler
 load_dotenv()
 
 def create_app():
-    # 指定 static 和 template 目录
     base = os.path.dirname(__file__)
     app = Flask(
         __name__,
         static_folder=os.path.join(base, 'static'),
         template_folder=os.path.join(base, 'templates')
     )
-    
+
     # 基础配置
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_key_for_development')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///database.db')
@@ -46,23 +44,19 @@ def create_app():
     db.init_app(app)
     init_db(app)
 
-    # ==== 注册各模块蓝图 ====
+    # ==== 注册各模块蓝图（仅注册存在的文件） ====
     from src.routes.auth import auth_bp
-    from src.routes.activities import activity_bp   # 正确导入 activity_bp
-    from src.routes.admin import admin_bp
-    from src.routes.user import user_bp
+    from src.routes.activities import activity_bp
     from src.routes.registration import registration_bp
     from src.routes.dashboard import dashboard_bp
     from src.routes.upload import upload_bp
 
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(activity_bp, url_prefix='/activities')  # 指定前缀或在 Blueprint 内部已有
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(user_bp)
-    app.register_blueprint(registration_bp)
-    app.register_blueprint(dashboard_bp)
-    app.register_blueprint(upload_bp)
-    
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(activity_bp, url_prefix='/activities')
+    app.register_blueprint(registration_bp, url_prefix='/registration')
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(upload_bp, url_prefix='/upload')
+
     # SPA 前端入口：所有路径返回 index.html
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
@@ -73,7 +67,7 @@ def create_app():
             toastTitle='',
             toastMessage=''
         )
-    
+
     # 调试路由：查看实际加载路径
     @app.route('/__debug__')
     def debug_info():
