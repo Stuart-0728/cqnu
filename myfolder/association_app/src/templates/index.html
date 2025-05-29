@@ -24,47 +24,66 @@
                         <li class="nav-item">
                             <router-link class="nav-link" to="/activities">活动列表</router-link>
                         </li>
-                        <li class="nav-item" v-if="currentUser && currentUser.role==='admin'">
-                            <router-link class="nav-link" to="/admin">管理面板</router-link>
-                        </li>
                     </ul>
-                    <div class="d-flex">
-                        <router-link v-if="!currentUser" class="btn btn-light me-2" to="/login">登录</router-link>
-                        <router-link v-if="!currentUser" class="btn btn-outline-light" to="/register">注册</router-link>
-                        <div v-if="currentUser" class="dropdown">
-                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                {{ currentUser.username }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><router-link class="dropdown-item" to="/profile">个人资料</router-link></li>
-                                <li><router-link class="dropdown-item" to="/my-registrations">我的报名</router-link></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" @click.prevent="logout">退出登录</a></li>
-                            </ul>
-                        </div>
+                    <div class="dropdown" v-if="!currentUser">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <router-link class="nav-link" to="/login">登录</router-link>
+                            </li>
+                            <li class="nav-item">
+                                <router-link class="nav-link" to="/register">注册</router-link>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="dropdown" v-else>
+                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <span>{{ '{{' }} currentUser.username {{ '}}' }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><router-link class="dropdown-item" to="/my-registrations">我的报名</router-link></li>
+                            <li><router-link class="dropdown-item" to="/profile">个人资料</router-link></li>
+                            <li v-if="currentUser && currentUser.role === 'admin'">
+                                <router-link class="dropdown-item" to="/admin">管理面板</router-link>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" @click.prevent="logout">退出登录</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <!-- 内容区域 -->
-        <main class="container mt-4">
+        <!-- 主内容区 -->
+        <div class="container mt-4">
             <router-view></router-view>
-        </main>
+        </div>
 
         <!-- 页脚 -->
-        <footer class="footer mt-auto py-3 bg-light">
-            <div class="container text-center">
-                <span class="text-muted">© 2025 重庆师范大学师能素质协会 版权所有</span>
+        <footer class="bg-light text-center text-muted py-3 mt-5">
+            <div class="container">
+                &copy; 2025 重庆师范大学师能素质协会 | 技术支持：学生开发团队
             </div>
         </footer>
 
+        <!-- 通知提示框 -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" ref="toast">
+                <div class="toast-header" :class="toastClass">
+                    <strong class="me-auto">{{ '{{' }} toastTitle {{ '}}' }}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">
+                    {{ '{{' }} toastMessage {{ '}}' }}
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- 脚本 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/vue-router@4.0.14/dist/vue-router.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.2.31/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@4.0.14/dist/vue-router.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@0.26.1/dist/axios.min.js"></script>
     <script src="/static/js/main.js"></script>
 </body>
 </html>
