@@ -54,11 +54,17 @@ def create_app():
     from src.routes.activities import activities_bp
     from src.routes.admin import admin_bp
     from src.routes.user import user_bp
-    
+    from src.routes.registration import registration_bp
+    from src.routes.dashboard import dashboard_bp
+    from src.routes.upload import upload_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(activities_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(registration_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(upload_bp)
     
     # 主路由：所有前端页面都返回 index.html（SPA）
     @app.route('/', defaults={'path': ''})
@@ -72,6 +78,18 @@ def create_app():
             toastMessage=''
         )
     
+    # ==== 调试路由：查看实际工作目录和 src 内容 ====
+    @app.route('/__debug__')
+    def debug_info():
+        cwd = os.getcwd()
+        src_dir = os.path.abspath(os.path.dirname(__file__))
+        return jsonify({
+            "cwd": cwd,
+            "files_in_cwd": os.listdir(cwd),
+            "src_dir": src_dir,
+            "files_in_src": os.listdir(src_dir),
+        })
+
     return app
 
 # 下面两行保持不动，用于 Gunicorn 或 flask run
