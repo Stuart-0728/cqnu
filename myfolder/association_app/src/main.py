@@ -46,9 +46,9 @@ def create_app():
     db.init_app(app)
     init_db(app)
 
-    # ==== 注册各模块蓝图（注意名称对应） ====
+    # ==== 注册各模块蓝图 ====
     from src.routes.auth import auth_bp
-    from src.routes.activity import activity_bp        # ← 改这里
+    from src.routes.activities import activities_bp   # 正确的复数导入
     from src.routes.admin import admin_bp
     from src.routes.user import user_bp
     from src.routes.registration import registration_bp
@@ -56,14 +56,14 @@ def create_app():
     from src.routes.upload import upload_bp
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(activity_bp)               # ← 也改这里
+    app.register_blueprint(activities_bp)           # 复数
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(registration_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(upload_bp)
     
-    # SPA 前端入口
+    # SPA 前端入口：所有路径返回 index.html
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def catch_all(path):
