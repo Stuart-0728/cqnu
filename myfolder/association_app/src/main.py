@@ -8,13 +8,13 @@ from logging.handlers import RotatingFileHandler
 # 加载 .env 文件里的环境变量
 load_dotenv()
 
-# 创建 Flask 应用工厂
 def create_app():
     # 指定 static 和 template 目录
+    base = os.path.dirname(__file__)
     app = Flask(
         __name__,
-        static_folder=os.path.join(os.path.dirname(__file__), 'static'),
-        template_folder=os.path.join(os.path.dirname(__file__), 'templates')
+        static_folder=os.path.join(base, 'static'),
+        template_folder=os.path.join(base, 'templates')
     )
     
     # 基础配置
@@ -23,13 +23,10 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # ==== 日志目录自动创建 ====
-    # main.py 在 src/ 目录下，project_root 是 association_app/
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    project_root = os.path.abspath(os.path.join(basedir, os.pardir))
+    project_root = os.path.abspath(os.path.join(base, os.pardir))
     log_dir = os.path.join(project_root, 'logs')
     os.makedirs(log_dir, exist_ok=True)
 
-    # 日志配置：仅当非调试模式时启用文件日志
     if not app.debug:
         handler = RotatingFileHandler(
             os.path.join(log_dir, 'app.log'),
@@ -49,9 +46,9 @@ def create_app():
     db.init_app(app)
     init_db(app)
 
-    # ==== 注册各模块蓝图 ====
+    # ==== 注册各模块蓝图（注意名称对应） ====
     from src.routes.auth import auth_bp
-    from src.routes.activities import activities_bp
+    from src.routes.activity import activity_bp        # ← 改这里
     from src.routes.admin import admin_bp
     from src.routes.user import user_bp
     from src.routes.registration import registration_bp
@@ -59,18 +56,17 @@ def create_app():
     from src.routes.upload import upload_bp
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(activities_bp)
+    app.register_blueprint(activity_bp)               # ← 也改这里
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(registration_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(upload_bp)
     
-    # 主路由：所有前端页面都返回 index.html（SPA）
+    # SPA 前端入口
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def catch_all(path):
-        # 传递一个空的 currentUser，避免 Jinja2 渲染时报错
         return render_template(
             'index.html',
             currentUser={'username': ''},
@@ -78,11 +74,11 @@ def create_app():
             toastMessage=''
         )
     
-    # ==== 调试路由：查看实际工作目录和 src 内容 ====
+    # 调试路由：查看实际加载路径
     @app.route('/__debug__')
     def debug_info():
         cwd = os.getcwd()
-        src_dir = os.path.abspath(os.path.dirname(__file__))
+        src_dir = os.path.abspath(base)
         return jsonify({
             "cwd": cwd,
             "files_in_cwd": os.listdir(cwd),
@@ -92,11 +88,9 @@ def create_app():
 
     return app
 
-# 下面两行保持不动，用于 Gunicorn 或 flask run
+# WSGI 入口
 from src.models import db, User, init_db
-
 app = create_app()
-# Gunicorn 默认会寻找 application 或 app
 application = app
 
 if __name__ == '__main__':
